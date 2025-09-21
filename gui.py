@@ -141,6 +141,63 @@ def ver_puestos_mejorado():
 
     tree.bind('<<TreeviewSelect>>', on_select)
 
+def subir_puesto():
+    ventana = Toplevel()
+    ventana.title("Subir Puesto")
+
+    tk.Label(ventana, text="Nombre:").grid(row=0, column=0, sticky='e')
+    nombre_entry = tk.Entry(ventana, width=40)
+    nombre_entry.grid(row=0, column=1, padx=10, pady=5)
+
+    tk.Label(ventana, text="Descripción:").grid(row=1, column=0, sticky='e')
+    descripcion_entry = tk.Entry(ventana, width=40)
+    descripcion_entry.grid(row=1, column=1, padx=10, pady=5)
+
+    tk.Label(ventana, text="Latitud:").grid(row=2, column=0, sticky='e')
+    lat_entry = tk.Entry(ventana, width=40)
+    lat_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    tk.Label(ventana, text="Longitud:").grid(row=3, column=0, sticky='e')
+    lon_entry = tk.Entry(ventana, width=40)
+    lon_entry.grid(row=3, column=1, padx=10, pady=5)
+
+    tk.Label(ventana, text="Foto (ruta local):").grid(row=4, column=0, sticky='e')
+    foto_entry = tk.Entry(ventana, width=40)
+    foto_entry.grid(row=4, column=1, padx=10, pady=5)
+
+    def enviar():
+        nombre = nombre_entry.get()
+        descripcion = descripcion_entry.get()
+        lat = lat_entry.get()
+        lon = lon_entry.get()
+        foto_path = foto_entry.get()
+
+        if not all([nombre, descripcion, lat, lon, foto_path]):
+            messagebox.showerror("Error", "Completa todos los campos")
+            return
+
+        try:
+            with open(foto_path, 'rb') as f:
+                files = {'foto': (foto_path.split('/')[-1], f)}
+                data = {
+                    'nombre': nombre,
+                    'descripcion': descripcion,
+                    'latitud': lat,
+                    'longitud': lon
+                }
+                response = requests.post('http://127.0.0.1:5000/puestos', data=data, files=files)
+
+            if response.status_code == 201:
+                messagebox.showinfo("Éxito", "Puesto subido correctamente")
+                ventana.destroy()
+            else:
+                messagebox.showerror("Error", "Error al subir puesto")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo subir la foto:\n{e}")
+
+    tk.Button(ventana, text="Subir", command=enviar).grid(row=5, column=0, columnspan=2, pady=10)
+
 def main():
     root = tk.Tk()
     root.title("Quadra Mejorado")
@@ -151,7 +208,7 @@ def main():
 
     tk.Label(root, text="Bienvenido a Quadra", font=("Helvetica", 16, "bold")).pack(pady=20)
 
-    ttk.Button(root, text="Subir Puesto", command=lambda: messagebox.showinfo("Info", "Funcionalidad pendiente")).pack(pady=10)
+    ttk.Button(root, text="Subir Puesto", command=subir_puesto).pack(pady=10)
     ttk.Button(root, text="Ver Puestos", command=ver_puestos_mejorado).pack(pady=10)
 
     root.mainloop()
